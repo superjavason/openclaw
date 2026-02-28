@@ -354,7 +354,7 @@ export async function startGatewayServer(
       const { installGlobalProxyDispatcher } = await import("../infra/net/global-proxy.js");
       const installed = installGlobalProxyDispatcher({ proxyUrl: configProxy });
       if (installed) {
-        log.info(`gateway: global proxy configured via network.proxy → ${configProxy}`);
+        log.info(`gateway: global proxy configured via network.proxy → ${new URL(configProxy).origin}`);
       }
     }
   }
