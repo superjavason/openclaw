@@ -57,11 +57,11 @@ export function installGlobalProxyDispatcher(options?: GlobalProxyOptions): bool
       : {};
 
   // Explicit URL → ProxyAgent; env vars → EnvHttpProxyAgent.
-  const agent = explicitUrl
-    ? new ProxyAgent({ uri: explicitUrl, ...connectOpts })
-    : new EnvHttpProxyAgent(connectOpts);
-
+  // ProxyAgent constructor throws on a malformed URI, so keep it inside the try.
   try {
+    const agent = explicitUrl
+      ? new ProxyAgent({ uri: explicitUrl, ...connectOpts })
+      : new EnvHttpProxyAgent(connectOpts);
     setGlobalDispatcher(agent);
     applied = true;
     return true;
