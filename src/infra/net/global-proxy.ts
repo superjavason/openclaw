@@ -1,4 +1,4 @@
-import { EnvHttpProxyAgent, setGlobalDispatcher } from "undici";
+import { EnvHttpProxyAgent, ProxyAgent, setGlobalDispatcher } from "undici";
 
 const ENV_PROXY_KEYS = [
   "HTTP_PROXY",
@@ -21,36 +21,45 @@ export function hasEnvProxy(): boolean {
   return false;
 }
 
+export type GlobalProxyOptions = {
+  autoSelectFamily?: boolean;
+  autoSelectFamilyAttemptTimeout?: number;
+  /** Explicit proxy URL; takes precedence over env vars when provided. */
+  proxyUrl?: string;
+};
+
 /**
- * Install a global undici dispatcher that honours HTTPS_PROXY / HTTP_PROXY
- * env vars. Node.js native `fetch()` (undici-based) does **not** read these
- * variables on its own; an explicit `EnvHttpProxyAgent` dispatcher is needed.
+ * Install a global undici dispatcher that routes all outbound fetch() through
+ * a proxy. When `proxyUrl` is provided it takes precedence; otherwise the
+ * dispatcher reads HTTPS_PROXY / HTTP_PROXY / ALL_PROXY env vars.
  *
  * Safe to call multiple times (idempotent). Returns true when the dispatcher
  * was installed (or was already installed from a prior call).
  */
-export function installGlobalProxyDispatcher(connectOptions?: {
-  autoSelectFamily?: boolean;
-  autoSelectFamilyAttemptTimeout?: number;
-}): boolean {
-  if (!hasEnvProxy()) {
+export function installGlobalProxyDispatcher(options?: GlobalProxyOptions): boolean {
+  const explicitUrl = options?.proxyUrl?.trim();
+  if (!explicitUrl && !hasEnvProxy()) {
     return false;
   }
 
-  const agent = new EnvHttpProxyAgent(
-    connectOptions
+  const connectOpts =
+    options?.autoSelectFamily !== undefined || options?.autoSelectFamilyAttemptTimeout !== undefined
       ? {
           connect: {
-            ...(connectOptions.autoSelectFamily !== undefined
-              ? { autoSelectFamily: connectOptions.autoSelectFamily }
+            ...(options.autoSelectFamily !== undefined
+              ? { autoSelectFamily: options.autoSelectFamily }
               : {}),
-            ...(connectOptions.autoSelectFamilyAttemptTimeout !== undefined
-              ? { autoSelectFamilyAttemptTimeout: connectOptions.autoSelectFamilyAttemptTimeout }
+            ...(options.autoSelectFamilyAttemptTimeout !== undefined
+              ? { autoSelectFamilyAttemptTimeout: options.autoSelectFamilyAttemptTimeout }
               : {}),
           },
         }
-      : {},
-  );
+      : {};
+
+  // Explicit URL → ProxyAgent; env vars → EnvHttpProxyAgent.
+  const agent = explicitUrl
+    ? new ProxyAgent({ uri: explicitUrl, ...connectOpts })
+    : new EnvHttpProxyAgent(connectOpts);
 
   try {
     setGlobalDispatcher(agent);
