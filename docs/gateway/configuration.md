@@ -17,7 +17,7 @@ If the file is missing, OpenClaw uses safe defaults. Common reasons to add a con
 - Set models, tools, sandboxing, or automation (cron, hooks)
 - Tune sessions, media, networking, or UI
 
-See the [full reference](/gateway/configuration-reference) for every available field.
+See the [full reference](/gateway/configuration-reference) for every available field. For a complete parameter-by-parameter list with types and allowed values, see [openclaw.json Parameter Reference](/gateway/openclaw-json-reference).
 
 <Tip>
 **New to configuration?** Start with `openclaw onboard` for interactive setup, or check out the [Configuration Examples](/gateway/configuration-examples) guide for complete copy-paste configs.

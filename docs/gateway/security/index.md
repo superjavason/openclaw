@@ -23,6 +23,8 @@ OpenClaw security guidance assumes a **personal assistant** deployment: one trus
 
 This page explains hardening **within that model**. It does not claim hostile multi-tenant isolation on one shared gateway.
 
+For a parameter-by-parameter security configuration reference, see [Security Configuration Guide](/gateway/security-configuration-guide).
+
 ## Quick check: `openclaw security audit`
 
 See also: [Formal Verification (Security Models)](/security/formal-verification/)
